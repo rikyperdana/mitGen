@@ -30,7 +30,17 @@ m.mount(document.body, mitGen({
     },
     about: {
       full: 'About Us', icon: 'users',
-      comp: () => m('p', 'Say hi to @rikyperdana on Github/Twitter')
+      comp: () => [
+        m('p', 'Say hi to @rikyperdana on Github/Twitter'),
+        m('p', 'List apps you wish to create with this library:'),
+        m(autoForm({
+          id: 'wishList', action: console.log,
+          schema: {
+            wishList: {type: Array},
+            'wishList.$': {type: String}
+          }
+        }))
+      ]
     }
   },
   end: {
