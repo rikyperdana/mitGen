@@ -1,9 +1,9 @@
 m.mount(document.body, mitGen({
-  brand: {
+  brand: { // only have 1 menu
     name: 'home', full: 'Mithril App',
     // comp: () => m('h1', 'Home')
   },
-  start: {
+  start: { // may have menus of menus
     download: {icon: 'download', children: {
       github: {icon: 'code-branch', comp: () => [
         m('h1', 'GitHub Clone'),
@@ -44,9 +44,22 @@ m.mount(document.body, mitGen({
           }
         }))
       ]
+    },
+    autoTable: {
+      icon: 'table', comp: () => [
+        m('h2', 'MitGen + AutoTable'),
+        m(autoTable({
+          heads: {one: 'Column 1', two: 'Column 2', three: 'Column 3', four: 'Column 4', five: 'Column 5'},
+          rows: [
+            {row: {one: 'row 1', two: 'row 1', three: 'row 1', four: 'row 1', five: 'row 1'}, data: {any: 'data1'}},
+            {row: {one: 'row 2', two: 'row 2', three: 'row 2', four: 'row 2', five: 'row 2'}, data: {any: 'data2'}},
+          ],
+          onclick: data => console.log(data)
+        }))
+      ]
     }
   },
-  end: {
+  end: { // may have 1 children menu
     name: 'user', full: 'User Menu',
     comp: () => m('h1', 'User Profile'),
     children: {
@@ -60,3 +73,7 @@ m.mount(document.body, mitGen({
     }
   },
 }))
+
+// TODO:
+// 1. Custome theme with BulmaSwatch
+// 2. AutoTable
