@@ -8,14 +8,14 @@ m.mount(document.body, mitGen({
       github: {icon: 'code-branch', comp: () => [
         m('h1', 'GitHub Clone'),
         m('a',
-          {href: 'https://github.com/rikyperdana/mitGen'},
+          {href: 'https://github.com/rikyperdana/mitGen', target: '_blank'},
           'Github page of this library'
         )
       ]},
       zip: {icon: 'file-archive', comp: () => [
         m('h1', 'Download Zip'),
         m('a',
-          {href: 'https://github.com/rikyperdana/mitGen/archive/master.zip'},
+          {href: 'https://github.com/rikyperdana/mitGen/archive/master.zip', target: '_blank'},
           'Get the bundled zip'
         )
       ]}
@@ -50,11 +50,11 @@ m.mount(document.body, mitGen({
         m('h2', 'MitGen + AutoTable'),
         m(autoTable({
           heads: {one: 'Column 1', two: 'Column 2', three: 'Column 3', four: 'Column 4', five: 'Column 5'},
-          rows: [
-            {row: {one: 'row 1', two: 'row 1', three: 'row 1', four: 'row 1', five: 'row 1'}, data: {any: 'data1'}},
-            {row: {one: 'row 2', two: 'row 2', three: 'row 2', four: 'row 2', five: 'row 2'}, data: {any: 'data2'}},
-          ],
-          onclick: data => console.log(data)
+          rows: _.range(300).map(i => ({
+            row: {one: 'row '+i, two: 'row '+i, three: 'row '+i, four: 'row '+i, five: 'row '+i}, data: {any: 'data '+i}
+          })),
+          onclick: data => console.log(data),
+          showSteps: [10, 50, 100]
         }))
       ]
     }
@@ -72,4 +72,6 @@ m.mount(document.body, mitGen({
       logout: {icon: 'sign-out-alt'}
     }
   },
-}, {theme: 'united'}))
+}, {
+  theme: 'united', search: true
+}))
