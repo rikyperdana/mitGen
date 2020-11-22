@@ -7,13 +7,11 @@ autoTable = obj => ({view: () => m('.box', m('.table-container', m('table.table'
       _.assign(atState, {sortBy: j, sortWay: !atState.sortWay}),
       m.redraw()
     ]},
-    m('div',
-      m('span', i), m('span.icon',
-        j === atState.sortBy && m('i.fas.fa-angle-'+(
-          atState.sortWay ? 'up': 'down'
-        ))
-      )
-    )
+    m('div', m('span', i), m('span.icon',
+      j === atState.sortBy && m('i.fas.fa-angle-'+(
+        atState.sortWay ? 'up': 'down'
+      ))
+    ))
   )))),
   m('tbody',
     obj.rows.sort((a, b) => atState.sortBy &&

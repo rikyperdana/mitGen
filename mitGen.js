@@ -5,8 +5,9 @@ makeIconLabel = (icon, label) => [
   m('span', label)
 ],
 
-mitGen = obj => ({view: () => m('div',
+mitGen = (obj, opts) => ({view: () => m('div',
   {class: 'has-background-light'},
+  opts.theme && m('link', {rel: 'stylesheet', href:'https://unpkg.com/bulmaswatch/'+opts.theme+'/bulmaswatch.min.css'}),
   m('nav.navbar.is-primary.is-fixed-top',
     m('.navbar-brand',
       m('a.navbar-item',

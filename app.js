@@ -72,8 +72,4 @@ m.mount(document.body, mitGen({
       logout: {icon: 'sign-out-alt'}
     }
   },
-}))
-
-// TODO:
-// 1. Custome theme with BulmaSwatch
-// 2. AutoTable
+}, {theme: 'united'}))
