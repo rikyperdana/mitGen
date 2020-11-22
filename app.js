@@ -49,6 +49,7 @@ m.mount(document.body, mitGen({
       icon: 'table', comp: () => [
         m('h2', 'MitGen + AutoTable'),
         m(autoTable({
+          id: 'sample',
           heads: {one: 'Column 1', two: 'Column 2', three: 'Column 3', four: 'Column 4', five: 'Column 5'},
           rows: _.range(300).map(i => ({
             row: {one: 'row '+i, two: 'row '+i, three: 'row '+i, four: 'row '+i, five: 'row '+i}, data: {any: 'data '+i}

@@ -8,7 +8,7 @@ autoTable = obj => ({view: () => m('.box',
       m('form',
         {onsubmit: e => [
           e.preventDefault(),
-          _.assign(atState, {search: e.target[0].value}),
+          _.assign(atState, {[obj.id]: {search: e.target[0].value}}),
           m.redraw()
         ]},
         m('.control.is-expanded', m('input.input.is-fullwidth', {
@@ -19,8 +19,8 @@ autoTable = obj => ({view: () => m('.box',
     obj.showSteps && m('.column.is-2',
       m('.select.is-fullwidth', m('select',
         {onchange: e => [
-          _.assign(atState, {activeStep: e.target.value})
-        ],value: atState.activeStep},
+          _.assign(atState, {[obj.id]: {activeStep: e.target.value}})
+        ],value: _.get(atState, [obj.id, 'activeStep'])},
         obj.showSteps.map(i => m('option', {value: i}, 'Show '+i))
       ))
     )
@@ -28,26 +28,29 @@ autoTable = obj => ({view: () => m('.box',
   m('.table-container', m('table.table',
     m('thead', m('tr', _.map(obj.heads, (i, j) => m('th',
       {onclick: () => [
-        _.assign(atState, {sortBy: j, sortWay: !atState.sortWay}),
+        _.assign(atState, {[obj.id]: {
+          sortBy: j, sortWay: !_.get(atState, [obj.id, 'sortWay'])
+        }}),
         m.redraw()
       ]},
       m('div', m('span', i), m('span.icon',
-        j === atState.sortBy ? m('i.fas.fa-angle-'+(
-          atState.sortWay ? 'up': 'down'
+        j === _.get(atState, [obj.id, 'sortBy'])? m('i.fas.fa-angle-'+(
+          _.get(atState, [obj.id, 'sortWay']) ? 'up': 'down'
         )) : m('i.fas.fa-sort')
       ))
     )))),
     m('tbody',
       obj.rows.filter(
         i => _.values(i.row).join('').includes(
-          atState.search || ''
+          _.get(atState, [obj.id, 'search']) || ''
         )
-      ).sort((a, b) => atState.sortBy &&
-        _[atState.sortWay ? 'gt' : 'lt'](
-          a.row[atState.sortBy], b.row[atState.sortBy]
+      ).sort((a, b) => _.get(atState, [obj.id, 'sortBy']) &&
+        _[_.get(atState, [obj.id, 'sortWay']) ? 'gt' : 'lt'](
+          a.row[_.get(atState, [obj.id, 'sortBy'])],
+          b.row[_.get(atState, [obj.id, 'sortBy'])]
         ) ? -1 : 1
       ).slice(
-        0, +atState.activeStep || obj.rows.length
+        0, +_.get(atState, [obj.id, 'activeStep']) || obj.rows.length
       ).map(i => m('tr',
         {onclick: () => obj.onclick(i.data)},
         _.values(i.row).map(j => m('td', j))
