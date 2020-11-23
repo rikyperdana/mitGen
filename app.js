@@ -74,5 +74,5 @@ m.mount(document.body, mitGen({
     }
   },
 }, {
-  theme: 'united', search: true
+  theme: 'united'
 }))

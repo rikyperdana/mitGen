@@ -22,7 +22,7 @@ autoTable = obj => ({view: () => m('.box',
         {onchange: e => [
           _.assign(atState, {[obj.id]: _.merge(
             _.get(atState, obj.id),
-            {activeStep: +e.target.value}
+            {activeStep: +e.target.value, pagination: 0}
           )})
         ],value: _.get(atState, [obj.id, 'activeStep'])},
         obj.showSteps.map(i => m('option', {value: i}, 'Show '+i))
