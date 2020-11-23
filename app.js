@@ -52,10 +52,10 @@ m.mount(document.body, mitGen({
           id: 'sample',
           heads: {one: 'Column 1', two: 'Column 2', three: 'Column 3', four: 'Column 4', five: 'Column 5'},
           rows: _.range(300).map(i => ({
-            row: {one: 'row '+i, two: 'row '+i, three: 'row '+i, four: 'row '+i, five: 'row '+i}, data: {any: 'data '+i}
+            row: {one: 'row '+i, two: 'row '+i, three: 'row '+i, four: 'row '+i, five: 'row '+i}, data: {anyKey: 'anyValue '+i}
           })),
-          onclick: data => console.log(data),
-          showSteps: [10, 50, 100]
+          onclick: data => alert(JSON.stringify(data)),
+          showSteps: [10, 50, 100], search: true
         }))
       ]
     }
