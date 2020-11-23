@@ -3,6 +3,12 @@
 Is a library that allows developers to develop MithrilJS-based applications by simply providing basic information such as menu names, icons, and their content.
 This library allows developers to develop simple to complex applications according to developer needs. The following is how to install this library:
 
+![Screenshot from 2020-11-23 17-49-34](https://user-images.githubusercontent.com/11875540/99953746-4cc0d080-2db4-11eb-99af-cee36233a30b.png)
+
+|Unity|Solar|Cerulean|
+|-----|-----|--------|
+|<img src="https://user-images.githubusercontent.com/11875540/99954319-1f285700-2db5-11eb-9ed3-eb51ba10a5f1.png" width="200">|<img src="https://user-images.githubusercontent.com/11875540/99954502-762e2c00-2db5-11eb-864f-5f6adde1590e.png"  width="200">|<img src="https://user-images.githubusercontent.com/11875540/99954400-41ba7000-2db5-11eb-9e7d-55618916a5ab.png" width="200">|
+
 ## Installation
 ```
 git clone https://github.com/rikyperdana/mitGen yourApp
