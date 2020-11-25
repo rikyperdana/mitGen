@@ -4,7 +4,7 @@ m.mount(document.body, mitGen({
     // comp: () => m('h1', 'Home')
   },
   start: { // may have menus of menus
-    download: {icon: 'download', children: {
+    download: {icon: 'download', submenu: {
       github: {icon: 'code-branch', comp: () => [
         m('h1', 'GitHub Clone'),
         m('a',
@@ -60,10 +60,10 @@ m.mount(document.body, mitGen({
       ]
     }
   },
-  end: { // may have 1 children menu
+  end: { // may have 1 submenu menu
     name: 'user', full: 'User Menu',
     comp: () => m('h1', 'User Profile'),
-    children: {
+    submenu: {
       login: {full: 'Sign In/Up', icon: 'sign-in-alt'},
       profile: {
         icon: 'address-card',

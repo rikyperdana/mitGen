@@ -30,15 +30,15 @@ mitGen = (obj, opts) => ({view: () => m('div',
       m('.navbar-start', _.map(obj.start, (val, key) =>
         m('a.navbar-item',
           {
-            class: val.children && 'has-dropdown is-hoverable',
+            class: val.submenu && 'has-dropdown is-hoverable',
             onclick: () => [
               _.assign(mgState, {comp: val.comp, burgerMenu: null}),
               m.redraw()
             ]
           },
-          val.children ? [
+          val.submenu ? [
             m('a.navbar-link', val.full || _.startCase(key)),
-            m('.navbar-dropdown', _.map(val.children, (i, j) =>
+            m('.navbar-dropdown', _.map(val.submenu, (i, j) =>
               m('a.navbar-item',
                 {onclick: e => [
                   e.stopPropagation(),
@@ -61,7 +61,7 @@ mitGen = (obj, opts) => ({view: () => m('div',
           obj.end.full
         ),
         m('.navbar-dropdown.is-right',
-          obj.end.children && _.map(obj.end.children, (i, j) =>
+          obj.end.submenu && _.map(obj.end.submenu, (i, j) =>
             m('a.navbar-item',
               {onclick: () => [
                 _.assign(mgState, {comp: i.comp}),
