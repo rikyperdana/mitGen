@@ -1,7 +1,7 @@
 var m, _, atState = {},
-withThis = (obj, cb) => cb(obj),
 ors = array => array.find(Boolean),
 ands = array => array.reduce((a, b) => a && b, true),
+ifit = (obj, cb) => obj && cb(obj),
 
 autoTable = obj => ({view: () => m('.box',
   m('.columns',
@@ -9,7 +9,7 @@ autoTable = obj => ({view: () => m('.box',
       {onsubmit: e => [
         e.preventDefault(),
         _.assign(atState, {[obj.id]: {
-          search: e.target[0].value
+          search: _.lowerCase(e.target[0].value)
         }}),
         m.redraw()
       ]},
@@ -24,11 +24,32 @@ autoTable = obj => ({view: () => m('.box',
             _.get(atState, obj.id),
             {activeStep: +e.target.value, pagination: 0}
           )})
-        ],value: _.get(atState, [obj.id, 'activeStep'])},
+        ], value: _.get(atState, [obj.id, 'activeStep'])},
         obj.showSteps.map(i => m('option', {value: i}, 'Show '+i))
       ))
     )
   ),
+  obj.filters && [
+    _.map(obj.filters, (val, key) => m('.field',
+      m('label.label', key),
+      m('.select.is-fullwidth', m('select',
+        {
+          onchange: e => _.assign(atState, {[obj.id]: _.merge(
+            _.get(atState, obj.id), {filters: _.merge(
+              _.get(atState, [obj.id, 'filters']) || {},
+              {[key]: e.target.value}
+            )}
+          )}),
+          value: _.values(_.get(atState, [obj.id, 'filters']) || {})
+          .find(i => val.map(j => j.label).includes(i))
+        },
+        val.map(i => m('option', {value: i.label}, i.label))
+      ))
+    )),
+    _.get(atState, [obj.id, 'filters']) && m('.button.is-warning', {
+      onclick: e => [(delete atState[obj.id].filters), m.redraw()]
+    }, 'Reset')
+  ],
   m('.table-container', m('table.table',
     m('thead', m('tr', _.map(obj.heads, (i, j) => m('th',
       {onclick: () => [
@@ -45,18 +66,32 @@ autoTable = obj => ({view: () => m('.box',
       ))
     )))),
     m('tbody',
-      obj.rows.filter(i => _.values(i.row).join('').includes(
-        _.get(atState, [obj.id, 'search']) || ''
-      )).sort((a, b) => _.get(atState, [obj.id, 'sortBy']) &&
+      obj.rows
+
+      .filter(i => ands(_.map(
+        _.get(atState, [obj.id, 'filters']),
+        (val, key) => obj.filters[key].find(j => j.label === val)
+      ).map(j => j.func(i.data))))
+
+      .filter(i =>
+        _.values(i.row).map(_.lowerCase)
+        .join('').includes(_.get(atState, [obj.id, 'search']) || '')
+      )
+
+      .sort((a, b) => _.get(atState, [obj.id, 'sortBy']) &&
         _[_.get(atState, [obj.id, 'sortWay']) ? 'gt' : 'lt'](
           a.row[_.get(atState, [obj.id, 'sortBy'])],
           b.row[_.get(atState, [obj.id, 'sortBy'])]
         ) ? -1 : 1
-      ).slice(
+      )
+
+      .slice(
         (_.get(atState, [obj.id, 'activeStep']) || 0) * (_.get(atState, [obj.id, 'pagination']) || 0),
         ((_.get(atState, [obj.id, 'activeStep']) || 0) * (_.get(atState, [obj.id, 'pagination']) || 0))
         + ors([_.get(atState, [obj.id, 'activeStep']), _.get(obj, ['showSteps', 0]), obj.rows.length])
-      ).map(i => m('tr',
+      )
+
+      .map(i => m('tr',
         {onclick: () => obj.onclick(i.data)},
         _.values(i.row).map(j => m('td', j))
       ))
