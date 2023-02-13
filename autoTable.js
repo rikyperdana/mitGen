@@ -1,10 +1,15 @@
-var m, _, atState = {},
+/*global _ m saveAs*/
+
+var atState = {},
 ors = array => array.find(Boolean),
 ands = array => array.reduce((a, b) => a && b, true),
 ifit = (obj, cb) => obj && cb(obj),
 
 autoTable = obj => ({view: () => m('.box',
+
   m('.columns',
+
+    // search term box
     obj.search && m('.column.is-10', m('form',
       {onsubmit: e => [
         e.preventDefault(),
@@ -17,6 +22,8 @@ autoTable = obj => ({view: () => m('.box',
         type: 'text', placeholder: 'Search data',
       }))
     )),
+
+    // pagination steps
     obj.showSteps && m('.column.is-2',
       m('.select.is-fullwidth', m('select',
         {onchange: e => [
@@ -29,8 +36,10 @@ autoTable = obj => ({view: () => m('.box',
       ))
     )
   ),
-  obj.filters && [
-    _.map(obj.filters, (val, key) => m('.field',
+
+  // filters selection, if available
+  obj.filters && m('.columns',
+    _.map(obj.filters, (val, key) => m('.column', m('.field',
       m('label.label', key),
       m('.select.is-fullwidth', m('select',
         {
@@ -45,12 +54,30 @@ autoTable = obj => ({view: () => m('.box',
         },
         val.map(i => m('option', {value: i.label}, i.label))
       ))
-    )),
-    _.get(atState, [obj.id, 'filters']) && m('.button.is-warning', {
-      onclick: e => [(delete atState[obj.id].filters), m.redraw()]
-    }, 'Reset')
-  ],
+    ))),
+  ),
+  _.get(atState, [obj.id, 'filters']) && m('.button.is-warning', {
+    onclick: e => [(delete atState[obj.id].filters), m.redraw()]
+  }, 'Reset'),
+
+  // additional functions icons
+  m('.field.is-grouped', [
+
+    // export table contents to csv
+    obj.export && m('.control', m('.button.is-link', {
+      onclick: e => saveAs(
+        new Blob([
+          [obj.rows.map(i => _.values(i.row).join(';')+';\n')],
+          {type: 'text/csv;charset=utf-8'}
+        ]), obj.export() + '.csv'
+      )
+    }, 'Export CSV'))
+  ]),
+
+  // table contents
   m('.table-container', m('table.table',
+
+    // sortable by column
     m('thead', m('tr', _.map(obj.heads, (i, j) => m('th',
       {onclick: () => [
         _.assign(atState, {[obj.id]: _.merge(
@@ -59,25 +86,33 @@ autoTable = obj => ({view: () => m('.box',
         )}),
         m.redraw()
       ]},
+      // and its direction
       m('div', m('span', i), m('span.icon',
-        j === _.get(atState, [obj.id, 'sortBy'])? m('i.fas.fa-angle-'+(
-          _.get(atState, [obj.id, 'sortWay']) ? 'up': 'down'
-        )) : m('i.fas.fa-sort')
+        j === _.get(atState, [obj.id, 'sortBy']) ?
+          m('i.fas.fa-angle-' + (
+            _.get(atState, [obj.id, 'sortWay']) ?
+            'up': 'down'
+          ))
+        : m('i.fas.fa-sort')
       ))
     )))),
-    m('tbody',
-      obj.rows
 
+    // rows contents
+    m('tbody', obj.rows
+
+      // if filters are available
       .filter(i => ands(_.map(
         _.get(atState, [obj.id, 'filters']),
         (val, key) => obj.filters[key].find(j => j.label === val)
       ).map(j => j.func(i.data))))
 
+      // if search term is available
       .filter(i =>
         _.values(i.row).map(_.lowerCase)
         .join('').includes(_.get(atState, [obj.id, 'search']) || '')
       )
 
+      // sort by column and direction
       .sort((a, b) => _.get(atState, [obj.id, 'sortBy']) &&
         _[_.get(atState, [obj.id, 'sortWay']) ? 'gt' : 'lt'](
           a.row[_.get(atState, [obj.id, 'sortBy'])],
@@ -85,6 +120,7 @@ autoTable = obj => ({view: () => m('.box',
         ) ? -1 : 1
       )
 
+      // show paginated table
       .slice(
         (_.get(atState, [obj.id, 'activeStep']) || 0) * (_.get(atState, [obj.id, 'pagination']) || 0),
         ((_.get(atState, [obj.id, 'activeStep']) || 0) * (_.get(atState, [obj.id, 'pagination']) || 0))
@@ -93,10 +129,12 @@ autoTable = obj => ({view: () => m('.box',
 
       .map(i => m('tr',
         {onclick: () => obj.onclick(i.data)},
-        _.values(i.row).map(j => m('td', j))
+        _.map(obj.heads, (val, key) => m('td', i.row[key]))
       ))
     )
   )),
+
+  // pagination indicators
   m('nav.pagination', m('.pagination-list',
     _.range(
       obj.rows.length / ors([
@@ -108,15 +146,15 @@ autoTable = obj => ({view: () => m('.box',
       onclick: () => [
         _.assign(atState, {[obj.id]: _.merge(
           _.get(atState, obj.id), {
-              pagination: i, search: null,
-              activeStep: ors([
-                _.get(atState, [obj.id, 'activeStep']),
-                obj.showSteps[0]
-              ])
+            pagination: i, search: null,
+            activeStep: ors([
+              _.get(atState, [obj.id, 'activeStep']),
+              obj.showSteps[0]
+            ])
           }
         )}),
         m.redraw()
       ]
-    }, i+1)))
+    }, i + 1)))
   ))
 )})
