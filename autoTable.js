@@ -1,10 +1,23 @@
-/*global _ m saveAs*/
+/*global _ m saveAs withAs*/
 
 var atState = {},
 ors = array => array.find(Boolean),
 ands = array => array.reduce((a, b) => a && b, true),
-ifit = (obj, cb) => obj && cb(obj),
+withAs = (obj, cb) => cb(obj),
+ifit = (obj, cb) => Boolean(obj) && cb(obj),
+timestamp = str => +(new Date(str)),
 modify = (rows, opts) => rows
+
+  // if timeRange is available
+  .filter(i => withAs(
+    {
+      start: _.get(atState, [opts.id, 'start_range']),
+      end: _.get(atState, [opts.id, 'end_range']),
+      func: eval(_.get(atState, [opts.id, 'rangeFunc']))
+    }, ({start, end, func}) => ands([
+      start, end, timestamp(start) < timestamp(end)
+    ]) ? func(i, timestamp(start), timestamp(end)) : i
+  ))
 
   // if filters are available
   .filter(i => ands(_.map(
@@ -68,6 +81,37 @@ autoTable = opts => ({view: () => m('.box',
     )
   ),
 
+  // timeRange filtering, if filled
+  opts.timeRange && m('.columns',
+    m('.column',
+        m('label.label', 'Criteria'),
+        m('.select.is-fullwidth', m('select',
+        {
+          value: _.get(atState, [opts.id, 'rangeFunc']),
+          onchange: e => _.merge(atState, {[opts.id]: {
+            rangeFunc: e.target.value
+          }})
+        },
+        [
+          m('option', {value: 0}, '-'),
+          ..._.map(opts.timeRange, (func, label) => m('option',
+            {value: func}, label
+          ))
+        ]
+      ))
+    ),
+    ['start_range', 'end_range'].map(i => m('.column',
+      m('label.label', _.startCase(i)),
+      m('.control', m('input.input', {
+        type: 'datetime-local',
+        name: i, value: _.get(atState, [opts.id, i]),
+        onchange: e => _.merge(atState, {[opts.id]: {
+          [i]: e.target.value
+        }})
+      }))
+    ))
+  ),
+
   // filters selection, if available
   opts.filters && m('.columns',
     _.map(opts.filters, (val, key) => m('.column', m('.field',
@@ -91,22 +135,31 @@ autoTable = opts => ({view: () => m('.box',
   // additional functions icons
   m('.field.is-grouped', [
 
-    ...(opts.buttons || []).map(i => m('.control',
+    ...(opts.buttons || []).map(i => i && m('.control',
       m('.button', i.opt, i.label)
     )),
 
     // export table contents to csv
     opts.export && m('.control', m('.button.is-link', {
       onclick: e => saveAs(
-        new Blob([
-          [modify(opts.rows, opts).map(i => _.values(i.row).join(';')+';\n')],
-          {type: 'text/csv;charset=utf-8'}
-        ]), opts.export() + '.csv'
+        new Blob(
+          [[modify(opts.rows, opts).map(
+            i => _.values(i.row).join(';')
+          ).join('\n')]], 
+          {type: 'text/csv;charset=utf-8;'}
+        ), opts.export() + '.csv'
       )
     }, 'Export CSV')),
 
-    _.get(atState, [opts.id, 'filters']) && m('.button.is-warning', {
-      onclick: e => [(delete atState[opts.id].filters), m.redraw()]
+    ors(['filters', 'start_range', 'end_range', 'rangeFunc'].map(
+      i => _.get(atState, [opts.id, i])
+    )) && m('.button.is-warning', {
+      onclick: e => [
+        ['filters', 'start_range', 'end_range', 'rangeFunc'].map(
+          i => delete atState[opts.id][i]
+        ),
+        m.redraw()
+      ]
     }, 'Reset Filters'),
   ]),
 
@@ -123,14 +176,23 @@ autoTable = opts => ({view: () => m('.box',
         m.redraw()
       ]},
       // and its direction
-      m('div', m('span', i), m('span.icon',
-        j === _.get(atState, [opts.id, 'sortBy']) ?
-          m('i.fas.fa-angle-' + (
-            _.get(atState, [opts.id, 'sortWay']) ?
-            'up': 'down'
-          ))
-        : m('i.fas.fa-sort')
-      ))
+      m('div',
+        m('span', ifit(
+          _.get(opts, ['tooltip', j]),
+          tip => ({
+            class: 'has-tooltip-bottom',
+            'data-tooltip': tip
+          })
+        ), i),
+        m('span.icon',
+          j === _.get(atState, [opts.id, 'sortBy']) ?
+            m('i.fas.fa-angle-' + (
+              _.get(atState, [opts.id, 'sortWay']) ?
+              'up': 'down'
+            ))
+          : m('i.fas.fa-sort')
+        )
+      )
     )))),
 
     // rows contents
