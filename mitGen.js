@@ -90,6 +90,7 @@ mitGen = (obj, opts) => ({view: () => m('div',
     withAs(
       m('.content', mgState.comp ? mgState.comp() : [
         m('h1', 'Dashboard'),
+        obj.dash.top && obj.dash.top(),
         _.chunk(_.map(obj.start, (v, k) => [v, k]), 3).map(i =>
           m('.columns', i.map(j => m('.column',
             m('a.box', m('article.media',
