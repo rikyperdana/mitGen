@@ -22,7 +22,9 @@ modify = (rows, opts) => rows
   // if filters are available
   .filter(i => ands(_.map(
     _.get(atState, [opts.id, 'filters']),
-    (val, key) => opts.filters[key].find(j => j.label === val)
+    (val, key) => opts.filters[key].find(
+      j => `${j.label}` === val
+    )
   ).map(j => j.func(i.data))))
 
   // if search box is available
@@ -94,8 +96,8 @@ autoTable = opts => ({view: () => m('.box',
         },
         [
           m('option', {value: 0}, '-'),
-          ..._.map(opts.timeRange, (func, label) => m('option',
-            {value: func}, label
+          ..._.map(opts.timeRange, (func, label) => m(
+            'option', {value: func}, label
           ))
         ]
       ))
