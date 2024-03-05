@@ -1,39 +1,46 @@
+/*global _ m mitGen autoForm autoTable chartSamples*/
+
 m.mount(document.body, mitGen({
-  brand: { // only have 1 menu
-    name: 'home', full: 'Mithril App',
-    // comp: () => m('h1', 'Home')
-  },
+  theme: 'journal',
+  brand: {name: 'home', full: 'MitGen'},
   start: { // may have menus of menus
-    download: {icon: 'download', submenu: {
-      github: {icon: 'code-branch', comp: () => [
-        m('h1', 'GitHub Clone'),
-        m('a',
-          {href: 'https://github.com/rikyperdana/mitGen', target: '_blank'},
-          'Github page of this library'
-        )
-      ]},
-      zip: {icon: 'file-archive', comp: () => [
-        m('h1', 'Download Zip'),
-        m('a',
-          {href: 'https://github.com/rikyperdana/mitGen/archive/master.zip', target: '_blank'},
-          'Get the bundled zip'
-        )
-      ]}
-    }},
+    download: {
+      icon: 'download',
+      full: 'Download',
+      submenu: {
+        github: {icon: 'code-branch', comp: () => [
+          m('h1', 'GitHub Clone'),
+          m('a',
+            {href: 'https://github.com/rikyperdana/mitGen', target: '_blank'},
+            'Github page of this library'
+          )
+        ]},
+        zip: {icon: 'file-archive', comp: () => [
+          m('h1', 'Download Zip'),
+          m('a',
+            {href: 'https://github.com/rikyperdana/mitGen/archive/master.zip', target: '_blank'},
+            'Get the bundled zip'
+          )
+        ]}
+      }
+    },
     tutorials: {
+      full: 'Tutorials',
       icon: 'chalkboard-teacher',
       comp: () => m('p', 'Have a look in app.js of how to use this library')
     },
     pricing: {
+      full: 'Pricing',
       icon: 'tag',
       comp: () => m('p', 'Open source means that the freedom is yours.')
     },
     about: {
-      full: 'About Us', icon: 'users',
+      full: 'About', icon: 'calendar',
       comp: () => m('p', 'Say hi to @rikyperdana on Github/Twitter')
     },
     autoForm: {
-      icon: 'file-invoice', comp: () => [
+      full: 'AutoForm',
+      icon: 'file', comp: () => [
         m('h2', 'MitGen + AutoForm'),
         m('p', 'List apps you wish to create with this library:'),
         m(autoForm({
@@ -46,6 +53,7 @@ m.mount(document.body, mitGen({
       ]
     },
     autoTable: {
+      full: 'AutoTable',
       icon: 'table', comp: () => [
         m('h2', 'MitGen + AutoTable'),
         m(autoTable({
@@ -73,6 +81,5 @@ m.mount(document.body, mitGen({
       logout: {icon: 'sign-out-alt'}
     }
   },
-}, {
-  theme: 'united'
+  below: chartSamples
 }))

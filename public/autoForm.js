@@ -1,5 +1,6 @@
-var m, _, {stringify, parse} = JSON,
+var m, _,
 afState = {arrLen: {}, form: {}},
+{stringify, parse} = JSON,
 
 autoForm = opts => ({view: () => {
 
@@ -27,21 +28,24 @@ autoForm = opts => ({view: () => {
       zeros(date.getMonth() + 1),
       zeros(date.getDate())
     ].join('-'),
-    hourStamp = 'T' + zeros(date.getHours()) + ':' + zeros(date.getMinutes())
+    hourStamp = [
+      'T', zeros(date.getHours()),
+      ':', zeros(date.getMinutes())
+    ].join('')
     return !hour ? dateStamp : dateStamp + hourStamp
   },
 
   // to convert structured object to linearized format
   linearize = obj => {
-    var linear = doc => withAs(
+    var recurse = doc => withAs(
       doc[_.keys(doc)[0]],
       value => typeof(value) === 'object' ?
-      _.map(value, (val, key) => linear(
+      _.map(value, (val, key) => recurse(
         {[_.keys(doc)[0] + '.' + key]: val}
       )) : doc
     )
     return _.fromPairs(
-      _.flattenDeep(linear({doc: obj})).map(
+      _.flattenDeep(recurse({doc: obj})).map(
         i => [_.keys(i)[0].substr(4), _.values(i)[0]]
       )
     )
@@ -66,7 +70,7 @@ autoForm = opts => ({view: () => {
         e.preventDefault()
         afState.form[opts.id] = opts.autoReset && null
 
-        var submit = () => opts.action && opts.action(
+        var submit = () => opts.action(
           // get all name and value pairs from vnode
           _.filter(e.target, i => i.name && i.value)
           .map(obj => withAs(
@@ -90,20 +94,20 @@ autoForm = opts => ({view: () => {
             )
           )).reduce((res, inc) => {
 
-            // recursive combiner of array or an object
-            var combiner = data => ors([
+            // structure combiner of array or an object
+            var recursive = data => ors([
               typeof(data) === 'object' && withAs(
                 {key: _.keys(data)[0], val: _.values(data)[0]},
                 ({key, val}) => ors([
                   +key + 1 && _.range(+key + 1).map(
-                    i => i === +key ? combiner(val) : undefined
+                    i => i === +key ? recursive(val) : undefined
                   ),
-                  {[key]: combiner(val)}
+                  {[key]: recursive(val)}
                 ])
               ),
               data
             ])
-            return _.merge(res, combiner(inc))
+            return _.merge(res, recursive(inc))
           }, {}), opts
         )
         !opts.confirmMessage ? submit()
@@ -132,27 +136,20 @@ autoForm = opts => ({view: () => {
     file: () => m('.field', attr.label(name, schema), withAs(
       _.get(afState.form, [opts.id, name]), thisFile =>
         thisFile ? m('.field.has-addons', [
-          !_.get(opts, 'submit.off') && m('input.input', {
+          m('input.input', {
             readonly: true, disabled: true,
             value: '100% ' + parse(thisFile).ori
           }),
-          m('.control', m('a', {
-            target: '__blank',
-            href: `${window.location.href}uploads/${parse(thisFile).id}`
-          }, m('.button', {'data-tooltip': 'Download'}, '↓'))),
-          !_.get(opts, 'submit.off') &&
-          m('.control', m('.button', {
-            'data-tooltip': 'Delete',
+          m('.control', m('.button.is-danger', {
             onclick: () => fetch('/unload', {
               headers: {'Content-Type': 'application/json'},
               method: 'post', body: thisFile
             }).then(res => res.json()).then(
-              res => res.status && [
-                delete afState.form[opts.id][name],
-                m.redraw()
-              ]
+              res => res.status === true &&
+              (delete afState.form[opts.id][name]) &&
+              m.redraw()
             )
-          }, '×'))
+          }, '-'))
         ]) : [
           m('input.button', {
             type: 'file',
@@ -210,8 +207,7 @@ autoForm = opts => ({view: () => {
         name: !schema.exclude ? name: '',
         required: !schema.optional,
         value: dateValue(_.get(afState.form, [opts.id, name]), true),
-        onchange: schema.autoRedraw && function(){},
-        disabled: _.get(opts, 'submit.off')
+        onchange: schema.autoRedraw && function(){}
       })),
       m('p.help', _.get(schema, 'autoform.help'))
     ),
@@ -224,8 +220,7 @@ autoForm = opts => ({view: () => {
         value: _.get(afState.form, [opts.id, name]),
         placeholder: _.get(schema, 'autoform.placeholder'),
         rows: _.get(schema, 'autoform.rows') || 6,
-        onchange: schema.autoRedraw && function(){},
-        disabled: _.get(opts, 'submit.off'),
+        onchange: schema.autoRedraw && function(){}
       }),
       m('p.help', _.get(schema, 'autoform.help'))
     ),
@@ -235,8 +230,7 @@ autoForm = opts => ({view: () => {
         name: !schema.exclude ? name : '', pattern: schema.regExp,
         required: !schema.optional, type: 'password',
         placeholder: _.get(schema, 'autoform.placeholder'),
-        onchange: schema.autoRedraw && function(){},
-        disabled: _.get(opts, 'submit.off')
+        onchange: schema.autoRedraw && function(){}
       }),
       m('p.help', _.get(schema, 'autoform.help'))
     ),
@@ -262,8 +256,7 @@ autoForm = opts => ({view: () => {
           name: !schema.exclude ? name : '',
           required: !schema.optional,
           value: _.get(afState.form, [opts.id, name]),
-          onchange: schema.autoRedraw && function(){},
-          disabled: _.get(opts, 'submit.off')
+          onchange: schema.autoRedraw && function(){}
         },
         m('option', {value: ''}, '-'),
         schema.autoform.options(name, afState.form[opts.id])
@@ -276,48 +269,62 @@ autoForm = opts => ({view: () => {
     ),
 
     standard: () => ors([
-      schema.type === Object && m('.box',
-        attr.label(name, schema),
-        withAs(
-          _.map(opts.schema, (val, key) =>
-            _.merge(val, {name: key})
-          ).filter(i => withAs(
-            str => _.size(_.split(str, '.')),
-            getLen => _.every([
-              _.includes(i.name, normal(name) + '.'),
-              getLen(name) + 1 === getLen(i.name)
-            ])
-          )).map(i => withAs(
-            {
-              childSchema: opts.schema[normal(i.name)],
-              fieldName: name + '.' + _.last(i.name.split('.'))
-            },
-            ({childSchema, fieldName}) => ({[fieldName]: () =>
-              inputTypes(fieldName, childSchema)
-              [_.get(childSchema, 'autoform.type') || 'standard']()
-            })
-          )),
-          fields =>
-            _.get(opts.layout, normal(name)) ?
-            opts.layout[normal(name)].map(i => m('.columns',
-              i.map(j => m('.column', fields.find(
-                k => k[name + '.' + j]
-              )[name + '.' + j]()))
-            )) : fields.map(i => _.values(i)[0]())
-        ),
-        m('p.help', _.get(schema, 'autoform.help'))
-      ),
+      schema.type === Object && m('.box', withAs(
+        _.get(afState, `toggleHide.${opts.id}["${name}"]`),
+        toggleHide => [
+          m('.columns.is-mobile', [
+            m('.column', attr.label(name, schema)),
+            !_.get(schema, 'autoform.noToggle') &&
+            m('.column', m('span.tag', {
+              style: {float: 'right'},
+              onclick: x => [
+                _.assign(afState, {toggleHide: {
+                  [opts.id]: {[name]: !toggleHide}
+                }}), m.redraw()
+              ]
+            }, toggleHide ? 'Show': 'Hide'))
+          ]),
+          withAs(
+            _.map(opts.schema, (val, key) =>
+              _.merge(val, {name: key})
+            ).filter(i => withAs(
+              str => _.size(_.split(str, '.')),
+              getLen => _.every([
+                _.includes(i.name, normal(name) + '.'),
+                getLen(name) + 1 === getLen(i.name)
+              ])
+            )).map(i => withAs(
+              {
+                childSchema: opts.schema[normal(i.name)],
+                fieldName: name + '.' + _.last(i.name.split('.'))
+              },
+              ({childSchema, fieldName}) => ({[fieldName]: () =>
+                inputTypes(fieldName, childSchema)
+                [_.get(childSchema, 'autoform.type') || 'standard']()
+              })
+            )),
+            fields => !toggleHide && m('div',
+              _.get(opts.layout, normal(name)) ?
+              opts.layout[normal(name)].map(i => m('.columns',
+                i.map(j => m('.column', fields.find(
+                  k => k[name + '.' + j]
+                )[name + '.' + j]()))
+              )) : fields.map(i => _.values(i)[0]())
+            )
+          ),
+          m('p.help', _.get(schema, 'autoform.help'))
+        ]
+      )),
 
       schema.type === Array && m('.box',
         attr.label(name, schema),
-        !_.get(opts, 'submit.off') && m('.field.is-grouped', [
-          {label: 'Add +', opt: 'inc'}, {label: 'Rem -', opt: 'dec'},
-          {label: afState.arrLen[name]}
-        ].map(i => m('.control', m(
-          '.button.is-small', i.opt && attr.arrLen(name, i.opt), i.label)
-        ))),
+        !schema.fixed && m('.tags',
+          m('.tag.is-success', attr.arrLen(name, 'inc'), 'Add+'),
+          m('.tag.is-warning', attr.arrLen(name, 'dec'), 'Rem-'),
+          m('.tag', afState.arrLen[name]),
+        ),
         _.range(
-          (_.get(opts.doc, name))?.length,
+          _.get(opts.doc, name) && opts.doc[name].length,
           afState.arrLen[name]
         ).map(i => withAs(
           opts.schema[normal(name) + '.$'],
@@ -344,7 +351,6 @@ autoForm = opts => ({view: () => {
           min: schema.minMax && schema.minMax(name, afState.form[opts.id])[0],
           max: schema.minMax && schema.minMax(name, afState.form[opts.id])[1],
           onchange: schema.autoRedraw && function(){},
-          disabled: _.get(opts, 'submit.off'),
           type: _.findKey(
             {date: Date, text: String, number: Number},
             (val, key) => val === schema.type
@@ -370,12 +376,12 @@ autoForm = opts => ({view: () => {
     ))) : fields.map(i => _.values(i)[0]()),
     m('.row', m('.field.is-grouped',
       [
-        !_.get(opts, 'submit.off') && {
+        {
           label: _.get(opts, 'submit.value') || 'Submit',
           opt: _.assign({type: 'submit', class: 'is-info'}, opts.submit),
         },
-        ...(opts.buttons || []).map(i => i && _.merge(i, {opt: {type: 'button'}}))
-      ].map(i => i && m('.control', m('button.button', i.opt, i.label)))
+        ...(opts.buttons || [])
+      ].map(i => m('.control', m('button.button', i.opt, i.label)))
     ))
   )
 }})

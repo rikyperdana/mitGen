@@ -6,7 +6,7 @@ ands = array => array.reduce((a, b) => a && b, true),
 withAs = (obj, cb) => cb(obj),
 ifit = (obj, cb) => Boolean(obj) && cb(obj),
 timestamp = str => +(new Date(str)),
-modify = (rows, opts) => rows
+atModify = (rows, opts) => rows
 
   // if timeRange is available
   .filter(i => withAs(
@@ -22,9 +22,7 @@ modify = (rows, opts) => rows
   // if filters are available
   .filter(i => ands(_.map(
     _.get(atState, [opts.id, 'filters']),
-    (val, key) => opts.filters[key].find(
-      j => `${j.label}` === val
-    )
+    (val, key) => opts.filters[key].find(j => j.label === val)
   ).map(j => j.func(i.data))))
 
   // if search box is available
@@ -96,8 +94,8 @@ autoTable = opts => ({view: () => m('.box',
         },
         [
           m('option', {value: 0}, '-'),
-          ..._.map(opts.timeRange, (func, label) => m(
-            'option', {value: func}, label
+          ..._.map(opts.timeRange, (func, label) => m('option',
+            {value: func}, label
           ))
         ]
       ))
@@ -145,7 +143,7 @@ autoTable = opts => ({view: () => m('.box',
     opts.export && m('.control', m('.button.is-link', {
       onclick: e => saveAs(
         new Blob(
-          [[modify(opts.rows, opts).map(
+          [[atModify(opts.rows, opts).map(
             i => _.values(i.row).join(';')
           ).join('\n')]], 
           {type: 'text/csv;charset=utf-8;'}
@@ -199,7 +197,7 @@ autoTable = opts => ({view: () => m('.box',
 
     // rows contents
     m('tbody',
-      modify(opts.rows, opts).map(i => m('tr',
+      atModify(opts.rows, opts).map(i => m('tr',
         {onclick: () => opts.onclick(i.data)},
         _.map(opts.heads, (val, key) => m('td', i.row[key]))
       ))
