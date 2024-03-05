@@ -1,7 +1,7 @@
 # MitGen: Mithril App Generator
 
 Is a library that allows developers to develop MithrilJS-based applications by simply providing basic information such as menu names, icons, and their content.
-This library allows developers to develop simple to complex applications according to developer needs. The following is how to install this library:
+This library allows developers to develop simple to complex applications according to developer needs. The following is how to install this project:
 
 ![Screenshot from 2020-11-23 17-49-34](https://user-images.githubusercontent.com/11875540/99953746-4cc0d080-2db4-11eb-99af-cee36233a30b.png)
 
