@@ -13,13 +13,13 @@ This library allows developers to develop simple to complex applications accordi
 ```
 git clone https://github.com/rikyperdana/mitGen yourApp
 cd yourApp
-npm install -g live-server
+npm install
 ```
 
 ## Running
 ```
 cd yourApp
-live-server
+node server.js
 ```
 and access http://localhost:8080
 
