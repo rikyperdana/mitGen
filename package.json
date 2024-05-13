@@ -1,11 +1,16 @@
 {
+  "name": "basicserver",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
   "scripts": {
-    "start": "node server.js"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "author": "",
+  "license": "ISC",
   "dependencies": {
-    "express": "^4.18.3",
-    "mongodb": "^3.6.3",
-    "dotenv": "^16.4.5",
-    "lodash": "^4.17.21"
+    "express": "^4.19.2",
+    "simple-json-db": "^2.0.0",
+    "socket.io": "^4.7.5"
   }
 }

@@ -9,7 +9,7 @@ autoForm = opts => ({view: () => {
   ifit = (obj, cb) => Boolean(obj) && cb(obj),
   ors = array => array.find(Boolean),
   ands = array => array.reduce((a, b) => a && b, true),
-  
+
   // change all numbers to $ sign
   normal = name => name.replace(/\d/g, '$'),
 
