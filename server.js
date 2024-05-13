@@ -18,5 +18,4 @@ io(app).on('connection', socket => [
     set: _ => cb(getColl(obj.coll).set(obj.key, obj.value))
   })[obj.action]()),
 
-  socket.on('test', (obj, cb) => cb({status: true}))
 ])

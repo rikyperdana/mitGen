@@ -1,7 +1,3 @@
-const randomId = x => Math.random().toString(36).slice(2),
-dbCall = (obj, cb) => io().emit('dbCall', obj, cb)
-// obj = {action*, coll*, key*, value: String}
-
 m.mount(document.body, mitGen({
   theme: 'journal',
   brand: {name: 'home', full: 'MitGen'},
@@ -79,6 +75,13 @@ m.mount(document.body, mitGen({
           showSteps: [10, 50, 100],
           search: true
         }))
+      ]
+    },
+    database: {
+      full: 'Database', icon: 'database',
+      comp: x => [
+        m('h2', 'Database Interaction'),
+        m('p', 'MitGen + Simple JSONdb (coming soon)')
       ]
     }
   }
