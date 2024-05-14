@@ -39,4 +39,22 @@ io(app).on('connection', socket => [
       ))
   )),
 
+  socket.on('login', (user, cb) => withAs(
+    Object.entries(access('users').JSON()).find(
+      i => i[1].username === user.username
+    ), foundUser => !foundUser
+      ? cb({status: false, msg: 'User not found.'})
+      : bcrypt.compare(
+        user.password, foundUser[1].password,
+        (err, similar) => !similar
+          ? cb({status: false, msg: 'Incorrect password.'})
+          : withAs(randomId(), token => [
+            access('users').set(foundUser[1].id, {
+              ...foundUser[1], token
+            }),
+            cb({...foundUser[1], password: '*****', token})
+          ])
+      )
+  )),
+
 ])
