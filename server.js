@@ -17,13 +17,7 @@ app = express()
 
 io(app).on('connection', socket => [
 
-  socket.on('dbCall', (obj, cb) => ({
-    get: _ => cb(access(obj.coll).get(obj.key)),
-    del: _ => cb(access(obj.coll).delete(obj.key)),
-    set: _ => [access(obj.coll).set(obj.key, obj.value), cb(true)],
-    json: _ => cb(access(obj.coll).JSON()),
-    repl: _ => access(obj.coll).JSON(obj.replace)
-  })[obj.action]()),
+  /* -------------- User Management System --------------- */
 
   socket.on('register', (user, cb) => withAs(
     // check if the user already exists
@@ -73,11 +67,11 @@ io(app).on('connection', socket => [
     // check if the user exists
     Object.entries(access('users').JSON()).find(
       i => i[1].username === user.username
-    ), foundUser => foundUser[1].token !== user.token
       // if the token he is holding is incorrect
+    ), foundUser => foundUser[1].token !== user.token
+      // then reject the logout request
       ? cb({status: false, msg: "You're not authorized."})
-      // but if it is, then..
-      : [
+      : [ // but if it is, then..
         // remove token from his record
         access('users').set(foundUser[1].id, {
           ...foundUser[1], token: 0
@@ -86,5 +80,17 @@ io(app).on('connection', socket => [
         cb({status: true, msg: 'Logout successful.'})
       ]
   ))
+
+  /* ------------------------------------------------- */
+
+  /* DANGER ZONE, dev only
+  socket.on('dbCall', (obj, cb) => ({
+    get: _ => cb(access(obj.coll).get(obj.key)),
+    del: _ => cb(access(obj.coll).delete(obj.key)),
+    set: _ => [access(obj.coll).set(obj.key, obj.value), cb(true)],
+    json: _ => cb(access(obj.coll).JSON()),
+    repl: _ => access(obj.coll).JSON(obj.replace)
+  })[obj.action]()),
+  */
 
 ])
