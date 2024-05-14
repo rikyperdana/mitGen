@@ -10,6 +10,7 @@ access = name => new JSONdb(
 {parse, stringify} = JSON,
 withAs = (obj, cb) => cb(obj),
 randomId = x => Math.random().toString(36).slice(2),
+ands = arr => arr.reduce((acc, inc) => acc && inc, true),
 
 app = express()
   .use(express.static('public'))
@@ -28,7 +29,7 @@ io(app).on('connection', socket => [
       ? cb({status: false, msg: 'User already registered.'})
       // if not, then hash the password first
       : bcrypt.hash(`${user.password}`, 10, (err, hash) => withAs(
-        {...user, id: randomId(), password: hash},
+        {...user, id: randomId(), password: hash, access: []},
         newUser => [
           // record the user with hash password
           access('users').set(newUser.id, newUser),
@@ -51,14 +52,18 @@ io(app).on('connection', socket => [
         (err, similar) => !similar
           // if it isn't similar, reject login
           ? cb({status: false, msg: 'Incorrect password.'})
-          // but if it is, then generate a new token
-          : withAs(randomId(), token => [
+          // but if it is, then generate a new token & lastLogin
+          : withAs([randomId(), +(new Date())], misc => [
             // store the token in his record
             access('users').set(foundUser[1].id, {
-              ...foundUser[1], token
+              ...foundUser[1], token: misc[0],
+              lastLogin: misc[1]
             }),
             // respond success with the token
-            cb({...foundUser[1], password: '*****', token})
+            cb({
+              ...foundUser[1], password: '*****',
+              token: misc[0]
+            })
           ])
       )
   )),
@@ -79,6 +84,34 @@ io(app).on('connection', socket => [
         // respond with logout success
         cb({status: true, msg: 'Logout successful.'})
       ]
+  )),
+
+  socket.on('grantAccess', (admin, user, cb) => withAs(
+    // find the admin record first
+    Object.entries(access('users').JSON()).find(i => ands([
+      i[1].access.includes('superadmin'),
+      i[1].username === admin.username,
+      i[1].token === admin.token
+    ])), checkAdmin => checkAdmin && bcrypt.compare(
+      // is he really an admin?
+      admin.password, checkAdmin[1].password,
+      (err, similar) => !similar
+        // if he isn't, then reject grantAccess
+        ? cb({status: false, msg: "You're not a super admin."})
+        : withAs(
+          // if he is, find the user to be granted access
+          Object.entries(access('users').JSON()).find(
+            i => i[1].username === user.username
+          ), grantUser => [
+            // store the granted access in the user record
+            access('users').set(grantUser[1].id, {
+              ...grantUser[1], access: user.access
+            }),
+            // respond with successful changes
+            cb({status: true, msg: 'Access successfully granted.'})
+          ]
+        )
+    )
   ))
 
   /* ------------------------------------------------- */
