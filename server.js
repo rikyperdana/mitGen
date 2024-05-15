@@ -1,5 +1,6 @@
 const
 io = require('socket.io'),
+{nanoid} = require('nanoid'),
 express = require('express'),
 bcrypt = require('bcryptjs'),
 JSONdb = require('simple-json-db'),
@@ -7,9 +8,7 @@ access = name => new JSONdb(
   `./db/${name}.json`, {jsonSpaces: 2}
 ),
 
-{parse, stringify} = JSON,
-withAs = (obj, cb) => cb(obj),
-randomId = x => Math.random().toString(36).slice(2),
+{parse, stringify} = JSON, withAs = (obj, cb) => cb(obj),
 ands = arr => arr.reduce((acc, inc) => acc && inc, true),
 
 app = express()
@@ -29,7 +28,7 @@ io(app).on('connection', socket => [
       ? cb({status: false, msg: 'User already registered.'})
       // if not, then hash the password first
       : bcrypt.hash(`${user.password}`, 10, (err, hash) => withAs(
-        {...user, id: randomId(), password: hash, access: []},
+        {...user, id: nanoid(), password: hash, access: []},
         newUser => [
           // record the user with hash password
           access('users').set(newUser.id, newUser),
@@ -53,7 +52,7 @@ io(app).on('connection', socket => [
           // if it isn't similar, reject login
           ? cb({status: false, msg: 'Incorrect password.'})
           // but if it is, then generate a new token & lastLogin
-          : withAs([randomId(), +(new Date())], misc => [
+          : withAs([nanoid(), +(new Date())], misc => [
             // store the token in his record
             access('users').set(foundUser[1].id, {
               ...foundUser[1], token: misc[0],
@@ -93,7 +92,7 @@ io(app).on('connection', socket => [
       i[1].username === admin.username,
       i[1].token === admin.token
     ])), checkAdmin => checkAdmin && bcrypt.compare(
-      // is he really an admin?
+      // is he really a super admin?
       admin.password, checkAdmin[1].password,
       (err, similar) => !similar
         // if he isn't, then reject grantAccess
@@ -102,7 +101,7 @@ io(app).on('connection', socket => [
           // if he is, find the user to be granted access
           Object.entries(access('users').JSON()).find(
             i => i[1].username === user.username
-          ), grantUser => [
+          ), grantUser => grantUser && [
             // store the granted access in the user record
             access('users').set(grantUser[1].id, {
               ...grantUser[1], access: user.access
