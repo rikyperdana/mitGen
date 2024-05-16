@@ -84,5 +84,52 @@ m.mount(document.body, mitGen({
         m('p', 'MitGen + Simple JSONdb (coming soon)')
       ]
     }
+  },
+  end: {
+    full: 'User Account', icon: 'user',
+    submenu: {
+      signin: {
+        full: 'Sign In', icon: 'sign-in',
+        comp: x => [
+          m('h2', 'Already have an account'),
+          m(autoForm({
+            id: 'signin',
+            schema: {
+              username: {type: String},
+              password: {type: String, autoform: {type: 'password'}}
+            },
+            submit: {value: 'Sign In'},
+            action: doc => io().emit(
+              'signin', doc, res => localStorage.setItem(
+                'userCreds', JSON.stringify(res)
+              )
+            )
+          }))
+        ]
+      },
+      signout: {
+        full: 'Sign Out', icon: 'sign-out',
+        comp: x => m('p', {
+          oncreate: x => io().emit('signout', JSON.parse(
+            localStorage.getItem('userCreds') || '{}'
+          ), res => localStorage.removeItem('userCreds'))
+        }, 'Signed out.')
+      },
+      signup: {
+        full: 'Sign Up', icon: 'door-open',
+        comp: x => [
+          m('h2.has-text-centered', 'Register new user'),
+          m(autoForm({
+            id: 'signup',
+            schema: {
+              username: {type: String},
+              password: {type: String, autoform: {type: 'password'}}
+            },
+            submit: {value: 'Sign Up'},
+            action: doc => io().emit('signup', doc, console.log)
+          }))
+        ]
+      }
+    }
   }
 }))

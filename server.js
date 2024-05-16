@@ -19,7 +19,7 @@ io(app).on('connection', socket => [
 
   /* -------------- User Management System --------------- */
 
-  socket.on('register', (user, cb) => withAs(
+  socket.on('signup', (user, cb) => withAs(
     // check if the user already exists
     Object.entries(access('users').JSON()).find(
       i => i[1].username === user.username
@@ -38,7 +38,7 @@ io(app).on('connection', socket => [
       ))
   )),
 
-  socket.on('login', (user, cb) => withAs(
+  socket.on('signin', (user, cb) => withAs(
     // check if the user exists
     Object.entries(access('users').JSON()).find(
       i => i[1].username === user.username
@@ -67,7 +67,7 @@ io(app).on('connection', socket => [
       )
   )),
 
-  socket.on('logout', (user, cb) => withAs(
+  socket.on('signout', (user, cb) => withAs(
     // check if the user exists
     Object.entries(access('users').JSON()).find(
       i => i[1].username === user.username
