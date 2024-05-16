@@ -87,8 +87,8 @@ m.mount(document.body, mitGen({
   },
   end: {
     full: 'User Account', icon: 'user',
-    submenu: {
-      signin: {
+    submenu: Object.fromEntries([
+      !localStorage.getItem('userCreds') && ['signin', {
         full: 'Sign In', icon: 'sign-in',
         comp: x => [
           m('h2', 'Already have an account'),
@@ -100,22 +100,27 @@ m.mount(document.body, mitGen({
             },
             submit: {value: 'Sign In'},
             action: doc => io().emit(
-              'signin', doc, res => localStorage.setItem(
-                'userCreds', JSON.stringify(res)
-              )
+              'signin', doc, res => [
+                localStorage.setItem(
+                  'userCreds', JSON.stringify(res)
+                ), mgState = {}, m.redraw()
+              ]
             )
           }))
         ]
-      },
-      signout: {
+      }],
+      localStorage.getItem('userCreds') && ['signout', {
         full: 'Sign Out', icon: 'sign-out',
         comp: x => m('p', {
           oncreate: x => io().emit('signout', JSON.parse(
             localStorage.getItem('userCreds') || '{}'
-          ), res => localStorage.removeItem('userCreds'))
+          ), res => [
+            localStorage.removeItem('userCreds'),
+            mgState = {}, m.redraw()
+          ])
         }, 'Signed out.')
-      },
-      signup: {
+      }],
+      !localStorage.getItem('userCreds') && ['signup', {
         full: 'Sign Up', icon: 'door-open',
         comp: x => [
           m('h2.has-text-centered', 'Register new user'),
@@ -126,10 +131,13 @@ m.mount(document.body, mitGen({
               password: {type: String, autoform: {type: 'password'}}
             },
             submit: {value: 'Sign Up'},
-            action: doc => io().emit('signup', doc, console.log)
+            action: doc => io().emit('signup', doc, res => [
+              mgState = {}, m.redraw(),
+              alert('Sign up successful. Please sign in.')
+            ])
           }))
         ]
-      }
-    }
+      }]
+    ].filter(Boolean))
   }
 }))
