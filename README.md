@@ -13,18 +13,18 @@ This library allows developers to develop simple to complex applications accordi
 ```
 git clone https://github.com/rikyperdana/mitGen yourApp
 cd yourApp
-npm install -g live-server
+npm install
 ```
 
 ## Running
 ```
 cd yourApp
-live-server
+nodemon server.js
 ```
-and access http://localhost:8080
+and access http://localhost:3000
 
 A dashboard page will appear which is an example of an application built using this library. You can see the material data used to make the entire view in the 
-`app.js` file. To be able to understand how to use this library please try changing the contents of the `app.js` file as below.
+`main.js` file. To be able to understand how to use this library please try changing the contents of the `app.js` file as below.
 
 ## API
 
