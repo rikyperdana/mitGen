@@ -1,5 +1,5 @@
 m.mount(document.body, mitGen({
-  theme: 'journal',
+  // theme: 'solar',
   brand: {name: 'home', full: 'MitGen'},
   start: {
     download: {
@@ -81,13 +81,62 @@ m.mount(document.body, mitGen({
       full: 'Database', icon: 'database',
       comp: x => [
         m('h2', 'Database Interaction'),
-        m('p', 'MitGen + Simple JSONdb (coming soon)')
+        m('p', 'MitGen + Simple JSONdb (coming soon)'),
+        m(autoForm({
+          id: 'dbSample',
+          schema: {
+            name: {type: String},
+            age: {type: Number}
+          },
+          action: doc => [
+            // update the localStorage
+            localStorage.setItem('dbSample', JSON.stringify({
+              ...JSON.parse(localStorage.getItem('dbSample') || '{}'),
+              [randomId()]: doc
+            })),
+            // overwrite the server db
+            io().emit(
+              'overwriteSample',
+              localStorage.getItem('dbSample'),
+              console.log
+            )
+          ]
+        })),
+        m(autoTable({
+          id: 'dbSample',
+          heads: {name: 'Name', age: 'Age'},
+          rows: Object.entries(JSON.parse(
+            localStorage.getItem('dbSample') || '{}'
+          )).map(i => ({
+            row: {name: i[1].name, age: i[1].age},
+            data: Object.fromEntries([i])
+          })),
+          onclick: console.log
+        }))
       ]
     }
   },
   end: {
     full: 'User Account', icon: 'user',
     submenu: Object.fromEntries([
+      !localStorage.getItem('userCreds') && ['signup', {
+        full: 'Sign Up', icon: 'door-open',
+        comp: x => [
+          m('h2.has-text-centered', 'Register new user'),
+          m(autoForm({
+            id: 'signup',
+            schema: {
+              username: {type: String},
+              password: {type: String, autoform: {type: 'password'}}
+            },
+            submit: {value: 'Sign Up'},
+            action: doc => io().emit('signup', doc, res => [
+              mgState = {}, m.redraw(),
+              alert('Sign up successful. Please sign in.')
+            ])
+          }))
+        ]
+      }],
       !localStorage.getItem('userCreds') && ['signin', {
         full: 'Sign In', icon: 'sign-in',
         comp: x => [
@@ -111,32 +160,14 @@ m.mount(document.body, mitGen({
       }],
       localStorage.getItem('userCreds') && ['signout', {
         full: 'Sign Out', icon: 'sign-out',
-        comp: x => m('p', {
+        comp: x => m('a', {
           oncreate: x => io().emit('signout', JSON.parse(
             localStorage.getItem('userCreds') || '{}'
           ), res => [
             localStorage.removeItem('userCreds'),
             mgState = {}, m.redraw()
           ])
-        }, 'Signed out.')
-      }],
-      !localStorage.getItem('userCreds') && ['signup', {
-        full: 'Sign Up', icon: 'door-open',
-        comp: x => [
-          m('h2.has-text-centered', 'Register new user'),
-          m(autoForm({
-            id: 'signup',
-            schema: {
-              username: {type: String},
-              password: {type: String, autoform: {type: 'password'}}
-            },
-            submit: {value: 'Sign Up'},
-            action: doc => io().emit('signup', doc, res => [
-              mgState = {}, m.redraw(),
-              alert('Sign up successful. Please sign in.')
-            ])
-          }))
-        ]
+        }, '')
       }]
     ].filter(Boolean))
   }
