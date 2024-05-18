@@ -73,52 +73,18 @@ io(app).on('connection', socket => [
     ))
   )),
 
-  socket.on('Xsignup', (user, cb) => withAs(
-    // check if the user already exists
-    Object.entries(access('users').JSON()).find(
-      i => i[1].username === user.username
-    ), foundUser => foundUser
-      // if it is, then reject registration
-      ? cb({status: false, msg: 'User already registered.'})
-      // if not, then hash the password first
-      : bcrypt.hash(`${user.password}`, 10, (err, hash) => withAs(
-        {...user, id: nanoid(), password: hash, access: []},
-        newUser => [
-          // record the user with hash password
-          access('users').set(newUser.id, newUser),
-          // respond success to the user
-          cb({...newUser, password: '*****'})
-        ]
-      ))
-  )),
-
-  socket.on('Xsignin', (user, cb) => withAs(
-    // check if the user exists
-    Object.entries(access('users').JSON()).find(
-      i => i[1].username === user.username
-    ), foundUser => !foundUser
-      // if it doesn't, reject login
-      ? cb({status: false, msg: 'User not found.'})
-      // if it does, then compare password and the hash
-      : bcrypt.compare(
-        user.password, foundUser[1].password,
-        (err, similar) => !similar
-          // if it isn't similar, reject login
-          ? cb({status: false, msg: 'Incorrect password.'})
-          // but if it is, then generate a new token & lastLogin
-          : withAs([nanoid(), +(new Date())], misc => [
-            // store the token in his record
-            access('users').set(foundUser[1].id, {
-              ...foundUser[1], token: misc[0],
-              lastLogin: misc[1]
-            }),
-            // respond success with the token
-            cb({
-              ...foundUser[1], password: '*****',
-              token: misc[0]
-            })
-          ])
-      )
+  socket.on('signin', (user, cb) => jsonDB.all(
+    'users', allUsers => withAs(Object.entries(allUsers).find(
+      record => record[1].username === user.username
+    ), foundUser => foundUser ? bcrypt.compare(
+      user.password, foundUser[1].password,
+      (err, similar) => similar
+        ? withAs([nanoid(), +(new Date())], misc => jsonDB.set(
+          'users', foundUser[0],
+          {...foundUser[1], token: misc[0], lastLogin: misc[1]},
+          res => cb({status: true, token: misc[0]})
+        )) : cb({status: false, msg: 'Incorrect password.'})
+    ) : cb({status: false, msg: 'User not found.'}))
   )),
 
   socket.on('Xsignout', (user, cb) => withAs(
