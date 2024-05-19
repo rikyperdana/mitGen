@@ -87,22 +87,16 @@ io(app).on('connection', socket => [
     ) : cb({status: false, msg: 'User not found.'}))
   )),
 
-  socket.on('Xsignout', (user, cb) => withAs(
-    // check if the user exists
-    Object.entries(access('users').JSON()).find(
-      i => i[1].username === user.username
-      // if the token he is holding is incorrect
-    ), foundUser => foundUser[1].token !== user.token
-      // then reject the logout request
-      ? cb({status: false, msg: "You're not authorized."})
-      : [ // but if it is, then..
-        // remove token from his record
-        access('users').set(foundUser[1].id, {
-          ...foundUser[1], token: 0
-        }),
-        // respond with logout success
-        cb({status: true, msg: 'Logout successful.'})
-      ]
+  socket.on('signout', (user, cb) => jsonDB.all(
+    'users', allUsers => withAs(
+      Object.entries(allUsers).find(record => ands([
+        record[1].username === user.username,
+        record[1].token === user.token
+      ])), foundUser => foundUser ? jsonDB.set(
+        'users', foundUser[0], {...foundUser[1], token: 0},
+        res => cb({status: true, msg: 'Sign out successful.'})
+      ) : cb({status: false, msg: 'Incorrect token.'})
+    )
   )),
 
   socket.on('XgrantAccess', (admin, user, cb) => withAs(
