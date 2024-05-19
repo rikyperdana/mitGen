@@ -54,25 +54,25 @@ io(app).on('connection', socket => [
   )),
 
   socket.on('grantAccess', (admin, user, cb) => jsonDB.all(
-    'users', allUsers => withAs(
-      Object.entries(allUsers).find(rec => ands([
-        rec[1].access.includes('superadmin'),
-        rec[1].username === admin.username,
-        rec[1].token === admin.token
-      ])), checkAdmin => checkAdmin && bcrypt.compare(
-        admin.password, checkAdmin[1].password,
-        (err, equal) => equal ? jsonDB.all(
-          'users', allUsers => withAs(
-            Object.entries(allUsers).find(
-              rec => rec[1].username === user.username
-            ), foundUser => foundUser
-            ? jsonDB.set('users', foundUser[0], {
-              ...foundUser[1], access: user.access
-            }, res => cb({status: true, msg: 'Access granted.'}))
-            : cb({status: false, msg: 'User not found'})
-          )
-        ) : cb({status: false, msg: "You're not superadmin."})
+    'users', usersJSON => withAs(
+      Object.entries(usersJSON), allUsers => withAs(
+        allUsers.find(rec => ands([
+          rec[1].access.includes('superadmin'),
+          rec[1].username === admin.username,
+          rec[1].token === admin.token
+        ])), checkAdmin => checkAdmin && bcrypt.compare(
+          admin.password, checkAdmin[1].password,
+          (err, equal) => equal ? withAs(
+            allUsers.find(rec => rec[1].username === user.username),
+            grantedUser => grantedUser ? jsonDB.set(
+              'users', grantedUser[0],
+              {...grantedUser[1], access: user.access},
+              res => cb({status: true, msg: 'Access granted.'})
+            ) : cb({status: false, msg: 'User not found.'})
+          ) : cb({status: false, msg: "You're not a superadmin."})
+        )
       )
     )
   ))
+
 ])
