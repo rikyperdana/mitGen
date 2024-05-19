@@ -60,17 +60,17 @@ io(app).on('connection', socket => [
           rec[1].access.includes('superadmin'),
           rec[1].username === admin.username,
           rec[1].token === admin.token
-        ])), checkAdmin => checkAdmin && bcrypt.compare(
+        ])), checkAdmin => checkAdmin ? bcrypt.compare(
           admin.password, checkAdmin[1].password,
-          (err, equal) => equal ? withAs(
+          (err, correctPass) => correctPass ? withAs(
             allUsers.find(rec => rec[1].username === user.username),
             grantedUser => grantedUser ? jsonDB.set(
               'users', grantedUser[0],
               {...grantedUser[1], access: user.access},
               res => cb({status: true, msg: 'Access granted.'})
             ) : cb({status: false, msg: 'User not found.'})
-          ) : cb({status: false, msg: "You're not a superadmin."})
-        )
+          ) : cb({status: false, msg: 'Incorrect password.'})
+        ) : cb({status: false, msg: 'Incorrect credentials.'})
       )
     )
   ))
