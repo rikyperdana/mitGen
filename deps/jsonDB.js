@@ -1,3 +1,5 @@
+const fs = require('fs')
+
 module.exports = {
 
   set: (coll, key, data, cb) => fs.readFile(
