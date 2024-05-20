@@ -5,8 +5,10 @@ express = require('express'),
 bcrypt = require('bcryptjs'),
 jsonDB = require('./deps/jsonDB.js'),
 
-{parse, stringify} = JSON, withAs = (obj, cb) => cb(obj),
-ands = arr => arr.reduce((acc, inc) => acc && inc, true),
+withAs = (obj, cb) => cb(obj),
+ands = arr => arr.reduce(
+  (acc, inc) => acc && inc, true
+),
 
 app = express()
   .use(express.static('public'))
@@ -23,7 +25,7 @@ io(app).on('connection', socket => [
     : bcrypt.hash(`${user.password}`, 10, (err, hash) => withAs(
       nanoid(), id => jsonDB.set('users', id, {
         ...user, id, password: hash, access: []
-      }, cb)
+      }, res => cb({status: true, msg: 'Registration successful.'}))
     ))
   )),
 
@@ -33,11 +35,11 @@ io(app).on('connection', socket => [
     ), foundUser => foundUser ? bcrypt.compare(
       user.password, foundUser[1].password,
       (err, similar) => similar
-        ? withAs([nanoid(), +(new Date())], misc => jsonDB.set(
-          'users', foundUser[0],
-          {...foundUser[1], token: misc[0], lastLogin: misc[1]},
-          res => cb({status: true, token: misc[0]})
-        )) : cb({status: false, msg: 'Incorrect password.'})
+      ? withAs([nanoid(), +(new Date())], misc => jsonDB.set(
+        'users', foundUser[0],
+        {...foundUser[1], token: misc[0], lastLogin: misc[1]},
+        res => cb({status: true, token: misc[0]})
+      )) : cb({status: false, msg: 'Incorrect password.'})
     ) : cb({status: false, msg: 'User not found.'}))
   )),
 
