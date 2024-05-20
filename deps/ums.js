@@ -4,12 +4,12 @@ io = require('socket.io'),
 bcrypt = require('bcryptjs'),
 jsonDB = require('./jsonDB.js'),
 
-withAs = (obj, cb) => cb(obj)
+withAs = (obj, cb) => cb(obj),
+ands = arr => arr.reduce(
+  (acc, inc) => acc && inc, true
+)
 
-module.exports = app =>
-io(app).of('/users').on('connection', socket => [
-
-  /* -------------- User Management System --------------- */
+module.exports = app => io(app).of('/users').on('connection', socket => [
 
   socket.on('signup', (user, cb) => jsonDB.all(
     'users', allUsers => Object.entries(allUsers).find(
