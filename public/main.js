@@ -80,27 +80,30 @@ m.mount(document.body, mitGen({
     database: {
       full: 'Database', icon: 'database',
       comp: x => [
-        m('h2', 'Database Interaction'),
+        m('h2', {
+          oncreate: x => io('/crud').emit('all', 'dbSample', res => [
+            localStorage.setItem('dbSample', JSON.stringify(res)),
+            m.redraw()
+          ])
+        }, 'Database Interaction'),
         m('p', 'MitGen + Simple JSONdb (coming soon)'),
         m(autoForm({
           id: 'dbSample',
           schema: {
             name: {type: String},
-            age: {type: Number}
+            age: {type: Number},
           },
-          action: doc => [
-            // update the localStorage
-            localStorage.setItem('dbSample', JSON.stringify({
-              ...JSON.parse(localStorage.getItem('dbSample') || '{}'),
-              [randomId()]: doc
-            })),
-            // overwrite the server db
-            io().emit(
-              'overwriteSample',
-              localStorage.getItem('dbSample'),
-              console.log
-            )
-          ]
+          action: doc => withAs(
+            randomId(), id => [
+              // update the localStorage
+              localStorage.setItem('dbSample', JSON.stringify({
+                ...JSON.parse(localStorage.getItem('dbSample') || '{}'),
+                [id]: doc
+              })),
+              // overwrite the server db
+              io('/crud').emit('set', 'dbSample', id, doc, console.log)
+            ]
+          ),
         })),
         m(autoTable({
           id: 'dbSample',
