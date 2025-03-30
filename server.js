@@ -1,8 +1,10 @@
 const express = require('express'),
-userMgtSys = require('./deps/ums.js'),
+userAPI = require('./deps/user.js'),
+crudAPI = require('./deps/crud.js'),
 
 app = express()
   .use(express.static('public'))
   .listen(3000)
 
-userMgtSys(app)
+userAPI(app)
+crudAPI(app)

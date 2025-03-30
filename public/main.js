@@ -130,7 +130,7 @@ m.mount(document.body, mitGen({
               password: {type: String, autoform: {type: 'password'}}
             },
             submit: {value: 'Sign Up'},
-            action: doc => io('/users').emit('signup', doc, res => [
+            action: doc => io('/user').emit('signup', doc, res => [
               mgState = {}, m.redraw(),
               alert('Sign up successful. Please sign in.')
             ])
@@ -148,7 +148,7 @@ m.mount(document.body, mitGen({
               password: {type: String, autoform: {type: 'password'}}
             },
             submit: {value: 'Sign In'},
-            action: doc => io('/users').emit(
+            action: doc => io('/user').emit(
               'signin', doc, res => [
                 localStorage.setItem(
                   'userCreds', JSON.stringify(res)
@@ -161,7 +161,7 @@ m.mount(document.body, mitGen({
       localStorage.getItem('userCreds') && ['signout', {
         full: 'Sign Out', icon: 'sign-out',
         comp: x => m('a', {
-          oncreate: x => io('/users').emit('signout', JSON.parse(
+          oncreate: x => io('/user').emit('signout', JSON.parse(
             localStorage.getItem('userCreds') || '{}'
           ), res => [
             localStorage.removeItem('userCreds'),

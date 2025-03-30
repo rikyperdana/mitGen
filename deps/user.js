@@ -1,6 +1,7 @@
+
 const fs = require('fs'),
-{nanoid} = require('nanoid'),
 io = require('socket.io'),
+{nanoid} = require('nanoid'),
 bcrypt = require('bcryptjs'),
 jsonDB = require('./jsonDB.js'),
 
@@ -9,9 +10,11 @@ ands = arr => arr.reduce(
   (acc, inc) => acc && inc, true
 )
 
-module.exports = app => io(app).of('/users').on('connection', socket => [
+module.exports = app => io(app).of('/user').on('connection', socket => [
 
-  socket.on('signup', (user, cb) => jsonDB.all(
+  socket.on('signup', (user, cb) => console.log('bisa')),
+
+  socket.on('Xsignup', (user, cb) => jsonDB.all(
     'users', allUsers => Object.entries(allUsers).find(
       record => record[1].username === user.username
     ) ? cb({status: false, msg: 'User already registered.'})
