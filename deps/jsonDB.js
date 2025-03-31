@@ -1,4 +1,5 @@
-const fs = require('fs')
+const fs = require('fs'),
+withAs = (obj, cb) => cb(obj)
 
 module.exports = {
 
@@ -36,6 +37,16 @@ module.exports = {
   all: (coll, cb) => fs.readFile(
     `./db/${coll}.json`, 'utf8', // get all contents
     (err, res) => res && cb(JSON.parse(res))
+  ),
+
+  find: (coll, filter, cb) => fs.readFile(
+    `./db/${coll}.json`, 'utf8', (err, res) => withAs(
+      JSON.parse(res), allData => cb(
+        Object.values(allData)
+        .filter(eval(filter))
+        // please pass string version of filter function
+      )
+    )
   ),
 
   rep: (coll, data, cb) => fs.writeFile(
