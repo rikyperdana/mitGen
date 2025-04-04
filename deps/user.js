@@ -10,7 +10,9 @@ ands = arr => arr.reduce(
   (acc, inc) => acc && inc, true
 )
 
-module.exports = app => io(app).of('/user').on('connection', socket => [
+module.exports = app => app.of('/user').on('connection', socket => [
+
+  socket.on('test', (data, cb) => cb(data)),
 
   socket.on('signup', (user, cb) => jsonDB.all(
     'users', allUsers => Object.entries(allUsers).find(
