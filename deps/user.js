@@ -12,9 +12,7 @@ ands = arr => arr.reduce(
 
 module.exports = app => io(app).of('/user').on('connection', socket => [
 
-  socket.on('signup', (user, cb) => console.log('bisa')),
-
-  socket.on('Xsignup', (user, cb) => jsonDB.all(
+  socket.on('signup', (user, cb) => jsonDB.all(
     'users', allUsers => Object.entries(allUsers).find(
       record => record[1].username === user.username
     ) ? cb({status: false, msg: 'User already registered.'})

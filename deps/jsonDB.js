@@ -42,9 +42,9 @@ module.exports = {
   find: (coll, filter, cb) => fs.readFile(
     `./db/${coll}.json`, 'utf8', (err, res) => withAs(
       JSON.parse(res), allData => cb(
-        Object.values(allData)
-        .filter(eval(filter))
-        // please pass string version of filter function
+        Object.values(allData).filter(eval(filter))
+        // please pass the string version of filter function
+        // just use the (x => x).toString()
       )
     )
   ),

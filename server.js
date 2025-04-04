@@ -6,5 +6,7 @@ app = express()
   .use(express.static('public'))
   .listen(3000)
 
-userAPI(app)
 crudAPI(app)
+userAPI(app)
+
+// remember that only last module export can survive
