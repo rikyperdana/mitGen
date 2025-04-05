@@ -1,5 +1,10 @@
 const fs = require('fs'),
 withAs = (obj, cb) => cb(obj)
+fromPairs = arr => arr.reduce(
+  (acc, val) => ({...acc,
+    [val[0]]: val[1]
+  }), {}
+)
 
 module.exports = {
 
@@ -41,11 +46,13 @@ module.exports = {
 
   find: (coll, filter, cb) => fs.readFile(
     `./db/${coll}.json`, 'utf8', (err, res) => withAs(
-      JSON.parse(res), allData => cb(
-        Object.values(allData).filter(eval(filter))
-        // please pass the string version of filter function
-        // just use the (x => x).toString()
-      )
+      JSON.parse(res), allData => cb(fromPairs(
+        Object.entries(allData).filter(
+          row => eval(filter)(row[1])
+          // pass the string version of filter function
+          // just use the (x => x).toString()
+        )
+      ))
     )
   ),
 

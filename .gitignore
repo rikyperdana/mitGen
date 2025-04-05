@@ -2,4 +2,4 @@
 package-lock.json
 shrinkwrap.yaml
 .env
-db
+db/*
