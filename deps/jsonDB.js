@@ -56,6 +56,16 @@ module.exports = {
     )
   ),
 
+  some: (coll, list, cb) => fs.readFile(
+    `./db/${coll}.json`, 'utf8', (err, res) => withAs(
+      JSON.parse(res), allData => cb(fromPairs(
+        Object.entries(allData).filter(
+          row => list.includes(row[0])
+        )
+      ))
+    )
+  ),
+
   rep: (coll, data, cb) => fs.writeFile(
     `./db/${coll}.json`, // replace the entire content
     JSON.stringify(data, null, 2),
