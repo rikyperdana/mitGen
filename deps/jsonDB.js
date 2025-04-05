@@ -61,6 +61,7 @@ module.exports = {
       JSON.parse(res), allData => cb(fromPairs(
         Object.entries(allData).filter(
           row => list.includes(row[0])
+          // list of keys to be retrieved
         )
       ))
     )
