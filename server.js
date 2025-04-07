@@ -11,4 +11,6 @@ app = express()
 IO = io(app)
 
 userAPI(IO)
+
+// crudAPI is for prototyping purpose only
 crudAPI(IO)

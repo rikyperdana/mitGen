@@ -1,5 +1,5 @@
 const fs = require('fs'),
-withAs = (obj, cb) => cb(obj)
+withAs = (obj, cb) => cb(obj),
 fromPairs = arr => arr.reduce(
   (acc, val) => ({...acc,
     [val[0]]: val[1]

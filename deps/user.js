@@ -10,6 +10,8 @@ ands = arr => arr.reduce(
   (acc, inc) => acc && inc, true
 )
 
+// Please initiate ../db/users.json with empty {}
+
 module.exports = app => app.of('/user').on('connection', socket => [
 
   socket.on('test', (data, cb) => cb(data)),
