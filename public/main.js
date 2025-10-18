@@ -86,7 +86,7 @@ m.mount(document.body, mitGen({
             m.redraw()
           ])
         }, 'Database Interaction'),
-        m('p', 'MitGen + Simple JSONdb (coming soon)'),
+        m('p', 'MitGen + JSONdb'),
         m(autoForm({
           id: 'dbSample',
           schema: {

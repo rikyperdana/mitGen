@@ -73,17 +73,14 @@ m.mount(document.body, mitGen({
 }))
 ```
 
-The depth of the menu can only be 2 levels (top menu, sub menu). If your application requires a lot of various pages, try to evenly distribute them on these 2 
-levels. By default on the main page rows of cards will be displayed representing the top menu for convenience on mobile devices, and may be replaced with a 
-custom page that you create yourself. Applications created with this library will automatically be mobile-friendly which the performance is close to the native 
-mobile app.
+The depth of the menu can only be 2 levels (top menu, sub menu). If your application requires a lot of various pages, try to evenly distribute them on these 2 levels. By default on the main page rows of cards will be displayed representing the top menu for convenience on mobile devices, and may be replaced with a custom page that you create yourself. Applications created with this library will automatically be mobile-friendly which the performance is close to the native mobile app.
 
 ## Add-ons
 This application is equipped with 2 additional libraries, namely autoForm and autoTable:
 
-- [AutoForm](https://github.com/rikyperdana/autoForm): library that allows you to create simple to complex forms by simply writing the data schema.
-- [AutoTable](https://github.com/rikyperdana/autoTable): library that allows you to create instant tables by simply providing rows of data and additional 
-options, it can be customized
+- [AutoForm](https://github.com/rikyperdana/autoForm): a library that allows you to create simple to complex forms by simply writing the data schema.
+- [AutoTable](https://github.com/rikyperdana/autoTable): a library that allows you to create instant tables by simply providing rows of data and additional options, it is customizable
+- [JSONdb]: a homemade json file based database management.
 
 ## Dependencies
 - MithrilJS
