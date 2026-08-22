@@ -1,16 +1,16 @@
-const
-io      = require('socket.io'),
-express = require('express'),
-userAPI = require('./deps/user.js'),
-crudAPI = require('./deps/crud.js'),
+import { Server } from "https://deno.land/x/socket_io@0.2.1/mod.ts"
+import { serveDir } from "jsr:@std/http/file-server"
+import { userIO } from "./deps/user.js"
 
-app = express()
-  .use(express.static('public'))
-  .listen(3000),
+const io = new Server()
 
-IO = io(app)
+io.on("connection", socket => [
+  userIO(socket),
+])
 
-userAPI(IO)
-
-// crudAPI is for prototyping purpose only
-crudAPI(IO)
+Deno.serve(
+  {port: 3000},
+  io.handler(req => serveDir(req, {
+    fsRoot: "./public", showIndex: true
+  }))
+)

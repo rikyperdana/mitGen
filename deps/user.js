@@ -1,78 +1,121 @@
+import { nanoid } from "npm:nanoid"
+import { jsonDB } from "./jsonDB.js"
+import bcrypt from "npm:bcryptjs@2.4.3";
 
-const fs = require('fs'),
-io = require('socket.io'),
-{nanoid} = require('nanoid'),
-bcrypt = require('bcryptjs'),
-jsonDB = require('./jsonDB.js'),
-
+const
 withAs = (obj, cb) => cb(obj),
-ands = arr => arr.reduce(
-  (acc, inc) => acc && inc, true
-)
+sum = arr => arr.reduce((a, b) => a + b, 0),
+randomId = x => Math.random().toString(36).slice(2, 10),
+deepNested = str => [...str.split('').slice(0, 3), str].join('/'),
+getKeys = obj => Object.entries(obj).map(i => i[0]),
 
 // Please initiate ../db/users.json with empty {}
 
-module.exports = app => app.of('/user').on('connection', socket => [
+userIO = socket => [
 
-  socket.on('test', (data, cb) => cb(data)),
+  // socket.on('test', (data, cb) => cb(data)),
 
-  socket.on('signup', (user, cb) => jsonDB.all(
-    'users', allUsers => Object.entries(allUsers).find(
-      record => record[1].username === user.username
-    ) ? cb({status: false, msg: 'User already registered.'})
-    : bcrypt.hash(`${user.password}`, 10, (err, hash) => withAs(
-      nanoid(), id => jsonDB.set('users', id, {
-        ...user, id, password: hash, access: []
-      }, res => cb({status: true, msg: 'Registration successful.'}))
+  socket.on('signup', (user, cb) => jsonDB.get(
+    'users', user.username,
+    res => res ? cb({status: 0}) : Deno.mkdir(
+      `./db/users/${deepNested(user.username)}`,
+      {recursive: true}
+    ).then(x => jsonDB.set(
+      'users', {[user.username]: null}, jsonDB.init(
+        `users/${deepNested(user.username)}/account`, user,
+        res => res && cb({status: 1})
+      )
     ))
   )),
 
   socket.on('signin', (user, cb) => jsonDB.all(
-    'users', allUsers => withAs(Object.entries(allUsers).find(
-      record => record[1].username === user.username
-    ), foundUser => foundUser ? bcrypt.compare(
-      user.password, foundUser[1].password,
-      (err, similar) => similar
-      ? withAs([nanoid(), +(new Date())], misc => jsonDB.set(
-        'users', foundUser[0],
-        {...foundUser[1], token: misc[0], lastLogin: misc[1]},
-        res => cb({status: true, token: misc[0]})
-      )) : cb({status: false, msg: 'Incorrect password.'})
-    ) : cb({status: false, msg: 'User not found.'}))
-  )),
-
-  socket.on('signout', (user, cb) => jsonDB.all(
-    'users', allUsers => withAs(
-      Object.entries(allUsers).find(record => ands([
-        record[1].username === user.username,
-        record[1].token === user.token
-      ])), foundUser => foundUser ? jsonDB.set(
-        'users', foundUser[0], {...foundUser[1], token: 0},
-        res => cb({status: true, msg: 'Sign out successful.'})
-      ) : cb({status: false, msg: 'Incorrect token.'})
+    // get the username .json
+    `users/${deepNested(user.username)}/account`,
+    data => data.err
+    // tell not found when fail
+    ? cb({status: 'User tidak ditemukan'})
+    // but if found
+    : bcrypt.compare( // bcrypt compare password
+      user.password, data.password, (err, match) =>
+        // if matched then return the data
+        match ? cb(data) : cb({status: 'Salah password'})
     )
   )),
 
-  socket.on('grantAccess', (admin, user, cb) => jsonDB.all(
-    'users', usersJSON => withAs(
-      Object.entries(usersJSON), allUsers => withAs(
-        allUsers.find(rec => ands([
-          rec[1].access.includes('superadmin'),
-          rec[1].username === admin.username,
-          rec[1].token === admin.token
-        ])), checkAdmin => checkAdmin ? bcrypt.compare(
-          admin.password, checkAdmin[1].password,
-          (err, correctPass) => correctPass ? withAs(
-            allUsers.find(rec => rec[1].username === user.username),
-            grantedUser => grantedUser ? jsonDB.set(
-              'users', grantedUser[0],
-              {...grantedUser[1], access: user.access},
-              res => cb({status: true, msg: 'Access granted.'})
-            ) : cb({status: false, msg: 'User not found.'})
-          ) : cb({status: false, msg: 'Incorrect password.'})
-        ) : cb({status: false, msg: 'Incorrect credentials.'})
-      )
-    )
-  ))
+  socket.on('getUser', (user, cb) => jsonDB.all(
+    `users/${deepNested(user.username)}/account`,
+    res => res.password === user.password && cb(res)
+  )),
 
-])
+  socket.on('updateUser', (user, cb) => jsonDB.set(
+    `users/${deepNested(user.username)}/account`, user, cb
+  )),
+
+  socket.on('applyDriver', (user, cb) => jsonDB.multiSet([
+    {address: `users/${deepNested(user.username)}/account`, data: user},
+    {address: 'applicants', data: {[user.username]: null}}
+  ], res => cb(true))),
+
+  socket.on('getApplicants', cb => jsonDB.all(
+    'applicants', res => res && jsonDB.multiGet([
+      getKeys(res).map(i => `users/${deepNested(i)}/account`)
+    ], cb)
+  )),
+
+  socket.on('adminDriverApproval', (user, cb) => jsonDB.set(
+    `users/${deepNested(user.username)}/account`, user, res => jsonDB.del(
+      'applicants', user.username, res => cb(true)
+    )
+  )),
+
+  socket.on('driverOn', (driver, cb) => [
+    driver.off
+    ? driversPool.delete(driver.username)
+    : driversPool.set(driver.username, driver),
+    // console.log([...driversPool]),
+    cb({driver: !driver.off}),
+  ]),
+
+  socket.on('riderOn', (rider, cb) => [
+    // put him into to waiting list
+    ridersPool.set(rider.username, rider),
+    // return the potential drivers
+    cb([...driversPool.values()].map(i => ({
+      ...i, dist: distCalc(i.place.pos, rider.from)
+    })).sort((a, b) => a.dist - b.dist))
+  ]),
+
+  socket.on('orderOn', (order, cb) => [
+    withAs(randomId(), id => ordersPool.set(
+      id, {id, ...order}
+    )),
+    socket.emit(
+      'forDriver',
+      [...ordersPool].map(i => ({
+        ...ridersPool.get(i[1].rider), ...i[1]
+      }))
+    )
+  ]),
+
+  socket.on('driverConfirm', (order, cb) => [
+    ridersPool.set(order.rider, {
+      ...ridersPool.get(order.rider),
+      driver: driversPool.get(order.driver)
+    }),
+    ordersPool.delete(order.order),
+    driversPool.set(order.driver, {
+      ...driversPool.get(order.driver),
+      onRide: {[order.rider]: order.order}
+    }),
+    cb(ridersPool.get(order.rider))
+  ]),
+
+  socket.on('trafficMonitor', cb => cb({
+    driversPool: [...driversPool.values()],
+    ridersPool: [...ridersPool.values()],
+    ordersPool: [...ordersPool.values()]
+  }))
+
+]
+
+export { userIO }

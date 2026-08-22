@@ -9,22 +9,15 @@ This library allows developers to develop simple to complex applications accordi
 |-----|-----|--------|
 |<img src="https://user-images.githubusercontent.com/11875540/99954319-1f285700-2db5-11eb-9ed3-eb51ba10a5f1.png" width="200">|<img src="https://user-images.githubusercontent.com/11875540/99954502-762e2c00-2db5-11eb-864f-5f6adde1590e.png"  width="200">|<img src="https://user-images.githubusercontent.com/11875540/99954400-41ba7000-2db5-11eb-9e7d-55618916a5ab.png" width="200">|
 
-## Installation
+## Quick Start
 ```
 git clone https://github.com/rikyperdana/mitGen yourApp
 cd yourApp
-npm install
-```
-
-## Running
-```
-cd yourApp
-nodemon server.js
+deno --allow-all server.js
 ```
 and access http://localhost:3000
 
-A dashboard page will appear which is an example of an application built using this library. You can see the material data used to make the entire view in the 
-`main.js` file. To be able to understand how to use this library please try changing the contents of the `app.js` file as below.
+A dashboard page will appear which is an example of an application built using this library. You can see the material data used to make the entire view in the `main.js` file. To be able to understand how to use this library please try changing the contents of the `main.js` file as below.
 
 ## API
 
